@@ -10,15 +10,6 @@ import UserLogin from './Components/UserLogin.jsx'
 import UserRegister from './Components/UserRegister.jsx'
 import ProductList from './products/ProductList.jsx'
 import ProductPage from './products/ProductPage.jsx'
-{/* Neo Mwashi */} 
-import { BrowserRouter, Navigate, Routes, Route } from "react-router";
-import "./App.css";
-import { adminSessionKey } from "./auth/adminAuth.js";
-import AdminLogin from "./Components/AdminLogin.jsx";
-import { AdminSidebar } from "./Components/administratornavbar.jsx";
-import LandingPage from "./Components/LandingPage.jsx";
-import ProductList from "./products/ProductList.jsx";
-import ProductPage from "./products/ProductPage.jsx";
 
 function ProtectedAdminRoute() {
   const session = getSession(adminSessionKey);
