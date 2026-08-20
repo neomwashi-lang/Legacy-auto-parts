@@ -19,6 +19,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useNavigate } from "react-router";
+import { API_BASE, adminSessionKey } from "../auth/adminAuth.js";
 import { adminSessionKey, initialUsers, usersStorageKey } from "../auth/adminAuth.js";
 
 const statCards = [
@@ -54,6 +55,7 @@ export function AdminSidebar() {
   const [activeItem, setActiveItem] = useState("Dashboard");
   
   const { data: fetchedProducts, loading, error } = useFetch(
+    `${API_BASE}/products`
     "https://legacy-auto-parts.onrender.com/products"
   );
 
@@ -65,16 +67,15 @@ export function AdminSidebar() {
     }
   }, [fetchedProducts]);
 
-  const [users, setUsers] = useState(() => {
-    try {
-      const savedUsers = window.localStorage.getItem(usersStorageKey);
-      return savedUsers
-        ? JSON.parse(savedUsers).filter((user) => user.role !== "Reader")
-        : initialUsers;
-    } catch {
-      return initialUsers;
+  const { data: fetchedUsers, error: usersError } = useFetch(`${API_BASE}/users`);
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    if (fetchedUsers) {
+      setUsers(fetchedUsers.filter((user) => user.role !== "Reader"));
     }
-  });
+  }, [fetchedUsers]);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [userRoleFilter, setUserRoleFilter] = useState("All");
   const [showAddProduct, setShowAddProduct] = useState(false);
@@ -114,11 +115,6 @@ export function AdminSidebar() {
     }));
   };
 
-  useEffect(() => {
-    window.localStorage.setItem(usersStorageKey, JSON.stringify(users));
-  }, [users]);
-
-
   const visibleProducts = products.filter((product) =>
     [product.name, product.brand, product.model, product.partNo, product.category]
       .join(" ")
@@ -147,6 +143,7 @@ export function AdminSidebar() {
       tone: "blue",
     };
 
+    fetch(`${API_BASE}/products`, {
     fetch("https://legacy-auto-parts.onrender.com/products", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -178,6 +175,7 @@ export function AdminSidebar() {
     if (!trimmedPrice) return;
 
     
+    fetch(`${API_BASE}/products/${productId}`, {
     fetch(`https://legacy-auto-parts.onrender.com/products/${productId}`, {
       method: "PATCH",
       headers: { "content-Type": "application/json" },
@@ -215,6 +213,7 @@ export function AdminSidebar() {
 
   const removeProduct = (product) => {
     if (!window.confirm(`Delete ${product.name} from inventory?`)) return;
+    fetch(`${API_BASE}/products/${product.id}`, {
     fetch(`https://legacy-auto-parts.onrender.com/products/${product.id}`, {
       method: "DELETE",
     })
@@ -227,31 +226,61 @@ export function AdminSidebar() {
 
   const removeUser = (user) => {
     if (!window.confirm(`Delete ${user.name} from staff and users?`)) return;
-    setUsers((currentUsers) =>
-      currentUsers.filter((item) => item.id !== user.id),
-    );
+    fetch(`${API_BASE}/users/${user.id}`, { method: "DELETE" })
+      .then(() => {
+        setUsers((currentUsers) => currentUsers.filter((item) => item.id !== user.id));
+      })
+      .catch((err) => console.error("Failed to delete user:", err));
   };
 
   const saveUser = (event) => {
     event.preventDefault();
-    setUsers((currentUsers) =>
-      currentUsers.map((user) =>
-        user.id === editingUser.id ? editingUser : user,
-      ),
-    );
-    setEditingUser(null);
+    fetch(`${API_BASE}/users/${editingUser.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(editingUser),
+    })
+      .then((response) => response.json())
+      .then((updatedUser) => {
+        setUsers((currentUsers) =>
+          currentUsers.map((user) => (user.id === updatedUser.id ? updatedUser : user)),
+        );
+        setEditingUser(null);
+      })
+      .catch((err) => console.error("Failed to update user:", err));
+  };
+
+  const toggleVerified = (user) => {
+    fetch(`${API_BASE}/users/${user.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ verified: !user.verified }),
+    })
+      .then((response) => response.json())
+      .then((updatedUser) => {
+        setUsers((currentUsers) =>
+          currentUsers.map((item) => (item.id === updatedUser.id ? updatedUser : item)),
+        );
+      })
+      .catch((err) => console.error("Failed to update verification:", err));
   };
 
   const addUser = (event) => {
     event.preventDefault();
     if (!newUser.name || !newUser.phone || !newUser.email || (newUser.role === "Admin" && !newUser.password)) return;
 
-    setUsers((currentUsers) => [
-      ...currentUsers,
-      { ...newUser, id: Date.now() },
-    ]);
-    setNewUser({ name: "", phone: "", email: "", password: "", role: "Customer" });
-    setShowAddUser(false);
+    fetch(`${API_BASE}/users`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...newUser, verified: newUser.role !== "Customer" }),
+    })
+      .then((response) => response.json())
+      .then((savedUser) => {
+        setUsers((currentUsers) => [...currentUsers, savedUser]);
+        setNewUser({ name: "", phone: "", email: "", password: "", role: "Customer" });
+        setShowAddUser(false);
+      })
+      .catch((err) => console.error("Failed to add user:", err));
   };
 
   return (
@@ -529,8 +558,24 @@ export function AdminSidebar() {
                           <Shield size={13} />
                           {user.role}
                         </span>
+                        {user.role === "Customer" && (
+                          <p className={`mt-1 text-[11px] font-semibold ${user.verified ? "text-emerald-300" : "text-amber-300"}`}>
+                            {user.verified ? "Verified" : "Not verified"}
+                          </p>
+                        )}
                       </div>
                       <div className="flex items-center gap-3 justify-self-start md:justify-self-end">
+                        {user.role === "Customer" && (
+                          <button
+                            type="button"
+                            onClick={() => toggleVerified(user)}
+                            aria-label={user.verified ? `Unverify ${user.name}` : `Verify ${user.name}`}
+                            title={user.verified ? "Unverify" : "Verify"}
+                            className={`text-xs font-semibold ${user.verified ? "text-amber-300 hover:text-amber-100" : "text-emerald-300 hover:text-emerald-100"}`}
+                          >
+                            {user.verified ? "Unverify" : "Verify"}
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => setEditingUser({ ...user })}
@@ -553,6 +598,11 @@ export function AdminSidebar() {
                     </div>
                   ))}
                 </div>
+                {usersError && (
+                  <p className="p-4 text-center text-sm text-red-300">
+                    Unable to load users from the API.
+                  </p>
+                )}
                 {visibleUsers.length === 0 && (
                   <p className="p-10 text-center text-admin-muted">
                     No users match these filters.

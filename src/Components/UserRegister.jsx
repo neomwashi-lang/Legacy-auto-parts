@@ -1,12 +1,13 @@
 {/*Emmanuel wema*/}
 import { useState } from 'react'
-import { Eye, EyeOff, LockKeyhole, LogIn, ShieldCheck } from 'lucide-react'
-import { useLocation, useNavigate } from 'react-router'
-import { adminSessionKey, loginWithApi, setSession } from '../auth/adminAuth.js'
+import { Eye, EyeOff, LockKeyhole, UserPlus } from 'lucide-react'
+import { Link, useNavigate } from 'react-router'
+import { registerCustomer } from '../auth/adminAuth.js'
 
-function AdminLogin() {
+function UserRegister() {
   const navigate = useNavigate()
-  const location = useLocation()
+  const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -19,10 +20,8 @@ function AdminLogin() {
     setSubmitting(true)
 
     try {
-      const user = await loginWithApi({ email, password, requiredRole: 'Admin' })
-      setSession(adminSessionKey, user)
-      const destination = location.state?.from || '/admin'
-      navigate(destination, { replace: true })
+      await registerCustomer({ name, phone, email, password })
+      navigate('/login', { replace: true, state: { registered: true } })
     } catch (err) {
       setError(err.message)
     } finally {
@@ -33,26 +32,37 @@ function AdminLogin() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#071015] px-6 py-12 text-white">
       <section className="w-full max-w-md rounded-2xl border border-[#5cd9e0]/25 bg-[#101a20] p-8 shadow-2xl shadow-black/40">
-        <div className="mb-8 flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#5cd9e0] text-[#102b40]">
-            <ShieldCheck size={26} />
-          </div>
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#5cd9e0]">Restricted area</p>
-            <h1 className="mt-1 text-2xl font-bold">Administrator login</h1>
-          </div>
-        </div>
+        <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#5cd9e0]">Create account</p>
+        <h1 className="mt-1 text-2xl font-bold">Register to order parts</h1>
+        <p className="mt-3 text-sm leading-6 text-[#b0d4e3]">An administrator must verify your account before you can place an order.</p>
 
-        <p className="mb-7 text-sm leading-6 text-[#b0d4e3]">Sign in to manage inventory, prices, users, and the storefront catalogue.</p>
-
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="mt-6 space-y-5">
           <label className="block text-sm font-medium text-[#d5e6ec]">
-            Administrator email
+            Full name
+            <input
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              required
+              className="mt-2 w-full rounded-lg border border-[#5cd9e0]/50 bg-[#080d10] px-4 py-3 font-semibold text-[#f8fafc] placeholder:text-[#8aa8b7] outline-none transition focus:border-[#5cd9e0] focus:ring-1 focus:ring-[#5cd9e0]"
+            />
+          </label>
+
+          <label className="block text-sm font-medium text-[#d5e6ec]">
+            Phone number
+            <input
+              value={phone}
+              onChange={(event) => setPhone(event.target.value)}
+              required
+              className="mt-2 w-full rounded-lg border border-[#5cd9e0]/50 bg-[#080d10] px-4 py-3 font-semibold text-[#f8fafc] placeholder:text-[#8aa8b7] outline-none transition focus:border-[#5cd9e0] focus:ring-1 focus:ring-[#5cd9e0]"
+            />
+          </label>
+
+          <label className="block text-sm font-medium text-[#d5e6ec]">
+            Email
             <input
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              placeholder="admin@legacyauto.test"
               autoComplete="username"
               required
               className="mt-2 w-full rounded-lg border border-[#5cd9e0]/50 bg-[#080d10] px-4 py-3 font-semibold text-[#f8fafc] placeholder:text-[#8aa8b7] outline-none transition focus:border-[#5cd9e0] focus:ring-1 focus:ring-[#5cd9e0]"
@@ -67,8 +77,7 @@ function AdminLogin() {
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                placeholder="Enter your password"
-                autoComplete="current-password"
+                autoComplete="new-password"
                 required
                 className="w-full rounded-lg border border-[#5cd9e0]/50 bg-[#080d10] py-3 pl-10 pr-12 font-semibold text-[#f8fafc] placeholder:text-[#8aa8b7] outline-none transition focus:border-[#5cd9e0] focus:ring-1 focus:ring-[#5cd9e0]"
               />
@@ -87,21 +96,17 @@ function AdminLogin() {
           {error && <p className="rounded-lg border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200" role="alert">{error}</p>}
 
           <button type="submit" disabled={submitting} className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#5cd9e0] px-4 py-3 font-bold text-[#102b40] transition hover:bg-white disabled:opacity-60">
-            <LogIn size={18} />
-            {submitting ? 'Signing in...' : 'Sign in to admin'}
+            <UserPlus size={18} />
+            {submitting ? 'Creating account...' : 'Create account'}
           </button>
         </form>
 
-        <div className="mt-6 rounded-lg border border-[#5cd9e0]/30 bg-[#0b252c] p-4 text-sm text-[#d5e6ec]">
-          <p className="font-bold text-[#5cd9e0]">Administrator access</p>
-          <p className="mt-2">Use the email saved on your Admin account.</p>
-          <p className="mt-1">Existing demo Admin accounts use password: <strong className="text-white">LegacyAdmin2026!</strong></p>
-        </div>
-
-        <p className="mt-6 text-center text-xs text-[#8aa8b7]">Storefront customers do not need an account to browse parts.</p>
+        <p className="mt-6 text-center text-sm text-[#8aa8b7]">
+          Already have an account? <Link to="/login" className="font-semibold text-[#5cd9e0] hover:text-white">Sign in</Link>
+        </p>
       </section>
     </main>
   )
 }
 
-export default AdminLogin
+export default UserRegister
