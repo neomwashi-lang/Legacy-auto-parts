@@ -1,6 +1,6 @@
 // Emmanuel wema
 // Authentication now goes through the JSON Server API instead of localStorage.
-export const API_BASE = 'http://localhost:3000'
+export const API_BASE = 'https://legacy-auto-parts.onrender.com'
 export const adminSessionKey = 'legacy-auto-parts-admin-session'
 export const userSessionKey = 'legacy-auto-parts-user-session'
 
