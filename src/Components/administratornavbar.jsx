@@ -55,7 +55,7 @@ export function AdminSidebar() {
   const [activeItem, setActiveItem] = useState("Dashboard");
   
   const { data: fetchedProducts, loading, error } = useFetch(
-    `${API_BASE}/products`
+    `${API_BASE}/products`,
     "https://legacy-auto-parts.onrender.com/products"
   );
 
