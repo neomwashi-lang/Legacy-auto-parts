@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router";
 import { API_BASE, adminSessionKey } from "../auth/adminAuth.js";
-import { adminSessionKey, initialUsers, usersStorageKey } from "../auth/adminAuth.js";
+
 
 const statCards = [
   { label: "Total sales anually", value: "500,000" },
@@ -144,7 +144,6 @@ export function AdminSidebar() {
     };
 
     fetch(`${API_BASE}/products`, {
-    fetch("https://legacy-auto-parts.onrender.com/products", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(productToSave),
@@ -176,7 +175,6 @@ export function AdminSidebar() {
 
     
     fetch(`${API_BASE}/products/${productId}`, {
-    fetch(`https://legacy-auto-parts.onrender.com/products/${productId}`, {
       method: "PATCH",
       headers: { "content-Type": "application/json" },
       body: JSON.stringify({ price: Number(trimmedPrice) }),
@@ -214,7 +212,6 @@ export function AdminSidebar() {
   const removeProduct = (product) => {
     if (!window.confirm(`Delete ${product.name} from inventory?`)) return;
     fetch(`${API_BASE}/products/${product.id}`, {
-    fetch(`https://legacy-auto-parts.onrender.com/products/${product.id}`, {
       method: "DELETE",
     })
       .then(() => {
