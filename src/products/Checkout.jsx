@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { API_BASE, getSession, userSessionKey } from "../auth/adminAuth.js";
 import { getCart, getCartTotal, clearCart } from "../cart/cartStorage.js";
+import { saveCheckoutDetails, getCheckoutDetails } from "../cart/checkoutStorage.js";
 
 function Checkout() {
   const navigate = useNavigate();
@@ -10,7 +11,11 @@ function Checkout() {
   const [cart] = useState(getCart());
   const [cardNumber, setCardNumber] = useState("");
   const [expiry, setExpiry] = useState("");
-  const [cardName, setCardName] = useState("");
+  const [cardName, setCardName] = useState(() => getCheckoutDetails()?.cardName || "");
+  const [fullName, setFullName] = useState(() => getCheckoutDetails()?.fullName || "");
+  const [phone, setPhone] = useState(() => getCheckoutDetails()?.phone || "");
+  const [address, setAddress] = useState(() => getCheckoutDetails()?.address || "");
+  const [city, setCity] = useState(() => getCheckoutDetails()?.city || "");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -36,8 +41,8 @@ function Checkout() {
     event.preventDefault();
     setError("");
 
-    if (!cardNumber.trim() || !expiry.trim() || !cardName.trim()) {
-      setError("Please fill in all payment details.");
+    if (!fullName.trim() || !phone.trim() || !address.trim() || !city.trim() || !cardNumber.trim() || !expiry.trim() || !cardName.trim()) {
+      setError("Please fill in all required fields.");
       return;
     }
 
@@ -54,6 +59,10 @@ function Checkout() {
           quantity: item.quantity,
           userId: session.id,
           userEmail: session.email,
+          fullName,
+          phone,
+          address,
+          city,
           status: "pending",
           createdAt: new Date().toISOString(),
         }),
@@ -62,6 +71,14 @@ function Checkout() {
 
     Promise.all(orderRequests)
       .then(() => {
+        saveCheckoutDetails({
+          fullName,
+          phone,
+          address,
+          city,
+          cardName,
+          cardLast4: cardNumber.replace(/\s/g, "").slice(-4),
+        });
         clearCart();
         navigate("/order-confirmation");
       })
@@ -75,6 +92,16 @@ function Checkout() {
     <div className="min-h-screen bg-admin-900 px-4 py-10 text-admin-ink sm:px-6 lg:px-10">
       <div className="mx-auto max-w-2xl">
         <h1 className="mb-8 text-4xl font-black tracking-[-0.06em]">Checkout</h1>
+
+        <div className="mb-4">
+          <button
+            type="button"
+            onClick={() => navigate("/cart")}
+            className="btn btn-outline"
+          >
+            ← Back to cart
+          </button>
+        </div>
 
         <div className="mb-6 rounded-2xl border border-admin-accent/15 bg-admin-surface p-6">
           <p className="mb-3 label">Order summary</p>
@@ -92,6 +119,44 @@ function Checkout() {
 
         <form onSubmit={handleSubmit} className="card space-y-4">
           <p className="label">Payment details (demo — no real charge)</p>
+
+          <p className="label mb-2">Delivery details</p>
+
+          <label className="block text-sm text-admin-muted">
+            Full name
+            <input
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-admin-accent/30 bg-admin-900 px-3 py-2 text-admin-ink outline-none focus:border-admin-accent"
+            />
+          </label>
+
+          <label className="block text-sm text-admin-muted">
+            Phone number
+            <input
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-admin-accent/30 bg-admin-900 px-3 py-2 text-admin-ink outline-none focus:border-admin-accent"
+            />
+          </label>
+
+          <label className="block text-sm text-admin-muted">
+            Delivery address
+            <input
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-admin-accent/30 bg-admin-900 px-3 py-2 text-admin-ink outline-none focus:border-admin-accent"
+            />
+          </label>
+
+          <label className="block text-sm text-admin-muted">
+            City
+            <input
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-admin-accent/30 bg-admin-900 px-3 py-2 text-admin-ink outline-none focus:border-admin-accent"
+            />
+          </label>
 
           <label className="block text-sm text-admin-muted">
             Card number

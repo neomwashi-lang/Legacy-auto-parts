@@ -6,6 +6,7 @@ import toyotaLogo from "../assets/toyotaLogo.png";
 import nissanLogo from "../assets/nissanLogo.png";
 import fordLogo from "../assets/fordLogo.png";
 import subaruLogo from "../assets/subaruLogo.png";
+import { getCart } from "../cart/cartStorage.js";
 
 const categories = [
   { name: "Toyota Parts", icon: toyotaLogo, brand: "Toyota" },
@@ -19,7 +20,7 @@ function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [categoriesOpen, setCategoriesOpen] = useState(false);
-  const [cart, setCart] = useState(0);
+  const [cart, setCart] = useState(() => getCart().length);
   const navigate = useNavigate();
 
   const handleSearchSubmit = (event) => {
