@@ -67,10 +67,10 @@ function LandingPage() {
               <strong>+254 707 177 362</strong>
             </a>
 
-            <a href="#products" className="cart">
+            <Link to="/Cart" className="cart">
               🛒
               <span>{cart}</span>
-            </a>
+            </Link>
 
             <button
               className="mobile-menu"

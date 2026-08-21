@@ -10,6 +10,9 @@ import UserLogin from './Components/UserLogin.jsx'
 import UserRegister from './Components/UserRegister.jsx'
 import ProductList from './products/ProductList.jsx'
 import ProductPage from './products/ProductPage.jsx'
+import Cart from './products/Cart.jsx'
+import Checkout from './products/Checkout.jsx'
+import OrderConfirmation from './products/OrderConfirmation.jsx'
 
 function ProtectedAdminRoute() {
   const session = getSession(adminSessionKey);
@@ -33,6 +36,11 @@ function App() {
         <Route path="/register" element={<UserRegister />} />
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={<ProtectedAdminRoute />} />
+        <Route path="/cart" element=
+        {<Cart />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/order-confirmation" element=
+        {<OrderConfirmation />} />
       </Routes>
     </BrowserRouter>
   );

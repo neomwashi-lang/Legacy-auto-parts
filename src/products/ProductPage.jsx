@@ -2,7 +2,8 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import useFetch from "../hooks/useFetch";
-import { API_BASE, getSession, userSessionKey } from "../auth/adminAuth.js";
+import { API_BASE } from "../auth/adminAuth.js";
+import { addToCart } from "../cart/cartStorage.js";
 
 function ProductPage() {
   const { id } = useParams();
@@ -15,52 +16,11 @@ function ProductPage() {
 
   const [quantity, setQuantity] = useState(1);
   const [orderStatus, setOrderStatus] = useState(null);
-  const [placingOrder, setPlacingOrder] = useState(false);
 
-  const handleOrder = () => {
-    const session = getSession(userSessionKey);
 
-    if (!session) {
-      navigate("/login", { state: { from: `/product/${id}` } });
-      return;
-    }
-
-    if (!session.verified) {
-      setOrderStatus({
-        type: "error",
-        message: "Your account must be verified by an administrator before you can order parts.",
-      });
-      return;
-    }
-
-    setPlacingOrder(true);
-    setOrderStatus(null);
-
-    fetch(`${API_BASE}/orders`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        productId: id,
-        productName: product.name,
-        price: product.price,
-        quantity,
-        userId: session.id,
-        userEmail: session.email,
-        status: "pending",
-        createdAt: new Date().toISOString(),
-      }),
-    })
-      .then((response) => {
-        if (!response.ok) throw new Error("Order request failed.");
-        return response.json();
-      })
-      .then(() => {
-        setOrderStatus({ type: "success", message: "Your order has been placed. Our team will contact you shortly." });
-      })
-      .catch(() => {
-        setOrderStatus({ type: "error", message: "Unable to place your order right now. Please try again." });
-      })
-      .finally(() => setPlacingOrder(false));
+  const handleAddToCart = () => {
+    addToCart(product, quantity);
+    setOrderStatus({ type: "success", message: "Added to cart." })
   };
 
   return (
@@ -128,17 +88,14 @@ function ProductPage() {
                   </label>
                   <button
                     type="button"
-                    onClick={handleOrder}
-                    disabled={placingOrder}
-                    className="btn btn-accent disabled:opacity-60"
+                    onClick={handleAddToCart}
+                    className="btn btn-accent"
                   >
-                    {placingOrder ? "Placing order..." : "Order part"}
+                    Add to cart
                   </button>
                 </div>
                 <p className="mt-3 text-xs text-admin-muted">
-                  Only verified customer accounts can order parts.{" "}
-                  <Link to="/login" className="font-semibold text-admin-accentSoft hover:underline">Sign in</Link>{" "}
-                  or <Link to="/register" className="font-semibold text-admin-accentSoft hover:underline">register</Link>.
+                  Sign in required at checkout to complete your order
                 </p>
                 {orderStatus && (
                   <p
