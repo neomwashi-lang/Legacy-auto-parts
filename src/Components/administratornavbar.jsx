@@ -1,7 +1,7 @@
 {/*Emmanuel wema*/}
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import useFetch from "../hooks/useFetch";
+import useFetch from "../hooks/useFetch.js";
 import {
   BarChart3,
   ChevronDown,
