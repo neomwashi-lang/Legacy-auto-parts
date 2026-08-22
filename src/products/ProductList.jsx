@@ -1,14 +1,12 @@
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router";
+import { useProducts } from "../context/ProductsContext.jsx";
 import useFetch from "../hooks/useFetch";
 
 function ProductList() {
   const [searchTerm, setSearchTerm] = useState("");
-  const {
-    data: products,
-    loading,
-    error,
-  } = useFetch("https://legacy-auto-parts.onrender.com/products");
+
+  const { products, loading, error } = useProducts();
 
   const [searchParams] = useSearchParams();
   const brandFilter = searchParams.get("brand");

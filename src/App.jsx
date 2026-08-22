@@ -13,6 +13,8 @@ import ProductPage from './products/ProductPage.jsx'
 import Cart from './products/Cart.jsx'
 import Checkout from './products/Checkout.jsx'
 import OrderConfirmation from './products/OrderConfirmation.jsx'
+import { ProductsProvider } from './context/ProductsContext.jsx'
+import { UsersProvider } from './context/UsersContext.jsx'
 
 function ProtectedAdminRoute() {
   const session = getSession(adminSessionKey);
@@ -27,22 +29,26 @@ function ProtectedAdminRoute() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/shop" element={<ProductList />} />
-        <Route path="/product/:id" element={<ProductPage />} />
-        <Route path="/login" element={<UserLogin />} />
-        <Route path="/register" element={<UserRegister />} />
-        <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/admin" element={<ProtectedAdminRoute />} />
-        <Route path="/cart" element=
-        {<Cart />} />
-        <Route path="/checkout" element={<Checkout />} />
-        <Route path="/order-confirmation" element=
-        {<OrderConfirmation />} />
-      </Routes>
-    </BrowserRouter>
+    <ProductsProvider>
+      <UsersProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/shop" element={<ProductList />} />
+            <Route path="/product/:id" element={<ProductPage />} />
+            <Route path="/login" element={<UserLogin />} />
+            <Route path="/register" element={<UserRegister />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin" element={<ProtectedAdminRoute />} />
+            <Route path="/cart" element=
+            {<Cart />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/order-confirmation" element= 
+            {<OrderConfirmation />} />
+          </Routes>
+        </BrowserRouter>
+      </UsersProvider>
+    </ProductsProvider>
   );
 }
 
